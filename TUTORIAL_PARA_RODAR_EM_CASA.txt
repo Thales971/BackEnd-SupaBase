@@ -115,6 +115,13 @@ No painel do projeto:
 4. Use a conexao pooler em DATABASE_URL
 5. Use a conexao direta em DIRECT_URL
 
+Importante:
+- DATABASE_URL pode ser a conexao via pooler para a aplicacao
+- DIRECT_URL deve ser a conexao direta do banco para migrations
+- se voce copiar uma string com host aws-...pooler.supabase.com, isso ainda e pooler
+- para migrations, confira se a string veio da opcao de conexao direta do Supabase
+- se a conexao direta falhar por rede ou IPv6, revise a opcao correta no painel do projeto
+
 Regras importantes:
 - DATABASE_URL costuma apontar para a conexao da aplicacao
 - DIRECT_URL e a conexao usada para migrations
