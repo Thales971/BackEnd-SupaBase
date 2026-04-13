@@ -1,0 +1,402 @@
+GUIA COMPLETO - API EXEMPLO EM CASA
+
+Projeto: Node.js + Express + Prisma + Supabase + Storage + Render
+
+Este guia foi organizado para voce pegar o projeto do GitHub, instalar tudo do zero e rodar a aplicacao em casa no Windows.
+
+1) O QUE VOCE PRECISA
+
+- Git instalado
+- Node.js instalado
+- VS Code instalado
+- Conta no GitHub
+- Conta no Supabase
+- Postman instalado
+- Internet para baixar dependencias
+
+2) COMO CLONAR O PROJETO
+
+Se o projeto estiver no GitHub:
+
+1. Abra o PowerShell ou o terminal do VS Code.
+2. Entre na pasta onde voce quer salvar o projeto.
+3. Execute:
+
+git clone <URL_DO_REPOSITORIO>
+
+4. Entre na pasta do projeto:
+
+cd Db-supaBase
+
+ou o nome que voce deu para o repositorio.
+
+5. Abra no VS Code:
+
+code .
+
+Se o projeto ja estiver baixado no computador, apenas abra a pasta no VS Code e siga a partir do passo 3.
+
+3) INSTALAR AS DEPENDENCIAS
+
+Dentro da pasta do projeto, rode:
+
+npm install
+
+Esse comando instala tudo que esta no package.json, incluindo:
+- express
+- prisma
+- @prisma/client
+- pg
+- @prisma/adapter-pg
+- multer
+- sharp
+- @supabase/supabase-js
+- dotenv
+- nodemon
+
+4) CONFIGURAR O ARQUIVO .ENV
+
+Na raiz do projeto, crie ou ajuste o arquivo .env.
+
+Importante:
+- nunca suba o .env para o GitHub
+- use valores reais do seu projeto Supabase
+- a senha do banco do Supabase e diferente da senha do GitHub
+
+Exemplo de estrutura:
+
+PORT=3000
+API_KEY="exemplo-backend-2026"
+
+# Banco local, se quiser usar em testes internos
+# DATABASE_URL="postgresql://postgres:senha@localhost:7777/exemplo_db"
+
+# Supabase - conexao para aplicacao
+DATABASE_URL="postgresql://USUARIO:senha@HOST:6543/postgres?pgbouncer=true"
+
+# Supabase - conexao direta para migrations
+DIRECT_URL="postgresql://USUARIO:senha@HOST:5432/postgres"
+
+# Supabase Storage
+SUPABASE_URL="https://SEU-PROJETO.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="SUA_SERVICE_ROLE_KEY"
+
+Sobre as variaveis:
+- PORT: porta da API local
+- API_KEY: chave obrigatoria para acessar as rotas de exemplo e arquivo
+- DATABASE_URL: conexao da aplicacao com o banco
+- DIRECT_URL: conexao direta usada pelo Prisma nas migrations
+- SUPABASE_URL: URL do projeto no Supabase
+- SUPABASE_SERVICE_ROLE_KEY: chave com permissao para o Storage
+
+5) CRIAR O PROJETO NO SUPABASE
+
+Se ainda nao tiver criado:
+
+1. Acesse https://supabase.com
+2. Faça login
+3. Clique em New project
+4. Preencha:
+   - Name: exemplo-db
+   - Database Password: anote esta senha
+   - Region: South America (Sao Paulo)
+5. Em Security, siga o modelo do projeto:
+   - Enable Data API: desativado
+   - Enable automatic RLS: desativado
+6. Clique em Create new project e aguarde a criacao
+
+6) PEGAR AS CONNECTION STRINGS DO SUPABASE
+
+No painel do projeto:
+
+1. Clique em Connect
+2. Selecione ORM -> Prisma
+3. Copie as variaveis mostradas na tela e coloque no seu .env
+4. Use a conexao pooler em DATABASE_URL
+5. Use a conexao direta em DIRECT_URL
+
+Regras importantes:
+- DATABASE_URL costuma apontar para a conexao da aplicacao
+- DIRECT_URL e a conexao usada para migrations
+- se o projeto estiver em IPv4 e a conexao direta falhar, use o pooler recomendado pelo Supabase
+
+7) AJUSTE DO PRISMA
+
+O arquivo prisma.config.js deste projeto ja esta preparado para usar DIRECT_URL nas migrations.
+
+Fluxo atual:
+- prisma.config.js aponta para DIRECT_URL
+- o schema.prisma nao precisa ter url nem directUrl na versao atual do Prisma
+
+Se quiser conferir:
+- prisma/config usa o caminho do schema
+- migrations apontam para prisma/migrations
+- seed usa node prisma/seed.js
+
+8) RODAR AS MIGRATIONS
+
+Depois que o .env estiver certo e o Supabase estiver configurado, rode:
+
+npx prisma migrate dev --name init
+
+Depois gere o client:
+
+npx prisma generate
+
+Se aparecer erro de conexao:
+- confira DATABASE_URL
+- confira DIRECT_URL
+- confira usuario, senha, host e porta
+- confira se o projeto do Supabase esta ativo
+
+Se aparecer erro de autenticacao:
+- a senha do banco provavelmente esta errada
+- copie novamente do painel do Supabase
+
+9) RODAR O SEED
+
+Se o projeto tiver seed configurado, rode:
+
+npx prisma db seed
+
+Esse comando popula o banco com dados iniciais, se o arquivo prisma/seed.js estiver configurado.
+
+10) SUBIR A API LOCALMENTE
+
+Para iniciar o servidor:
+
+npm run dev
+
+A API deve responder em:
+
+http://localhost:3000
+
+Teste a rota principal no navegador ou no Postman:
+
+GET http://localhost:3000/
+
+Resposta esperada:
+- mensagem de API funcionando
+
+11) TESTAR NO POSTMAN - EXEMPLOS
+
+Todas as rotas de exemplo usam API Key.
+
+Header obrigatorio:
+- x-api-key: exemplo-backend-2026
+
+Rotas:
+
+Criar exemplo:
+POST http://localhost:3000/api/exemplos
+Headers:
+- x-api-key: exemplo-backend-2026
+- Content-Type: application/json
+Body:
+{
+  "nome": "Omega"
+}
+
+Listar exemplos:
+GET http://localhost:3000/api/exemplos
+Headers:
+- x-api-key: exemplo-backend-2026
+
+Buscar por ID:
+GET http://localhost:3000/api/exemplos/1
+Headers:
+- x-api-key: exemplo-backend-2026
+
+Atualizar exemplo:
+PUT http://localhost:3000/api/exemplos/1
+Headers:
+- x-api-key: exemplo-backend-2026
+- Content-Type: application/json
+Body:
+{
+  "nome": "Exemplo Omega"
+}
+
+Deletar exemplo:
+DELETE http://localhost:3000/api/exemplos/1
+Headers:
+- x-api-key: exemplo-backend-2026
+
+12) TESTAR NO POSTMAN - FOTOS E DOCUMENTOS
+
+As rotas de arquivo tambem exigem a API Key.
+
+Header obrigatorio:
+- x-api-key: exemplo-backend-2026
+
+Upload de foto:
+POST http://localhost:3000/api/exemplos/1/foto
+Headers:
+- x-api-key: exemplo-backend-2026
+Body -> form-data
+- key: foto
+- type: File
+- value: selecione uma imagem
+
+Buscar foto:
+GET http://localhost:3000/api/exemplos/1/foto
+Headers:
+- x-api-key: exemplo-backend-2026
+
+Deletar foto:
+DELETE http://localhost:3000/api/exemplos/1/foto
+Headers:
+- x-api-key: exemplo-backend-2026
+
+Upload de documento:
+POST http://localhost:3000/api/exemplos/1/documento
+Headers:
+- x-api-key: exemplo-backend-2026
+Body -> form-data
+- key: documento
+- type: File
+- value: selecione um PDF, Word, Excel, TXT ou CSV
+
+Buscar documento:
+GET http://localhost:3000/api/exemplos/1/documento
+Headers:
+- x-api-key: exemplo-backend-2026
+
+Deletar documento:
+DELETE http://localhost:3000/api/exemplos/1/documento
+Headers:
+- x-api-key: exemplo-backend-2026
+
+13) REGRAS DO UPLOAD
+
+Este projeto aceita arquivos em memoria e envia direto para o Supabase Storage.
+
+Limites e regras:
+- tamanho maximo: 1 MB
+- tipos permitidos: imagem, PDF, Word, Excel, TXT e CSV
+- imagens sao convertidas para webp antes do upload
+- fotos e documentos sao salvos no bucket arquivos
+
+Se aparecer o erro:
+- File too large
+significa que o arquivo passou de 1 MB.
+
+Se aparecer o erro:
+- Tipo de arquivo nao permitido
+significa que o mimetype nao esta na lista aceita.
+
+14) CRIAR O BUCKET NO SUPABASE
+
+No Supabase Storage:
+
+1. Clique em Storage
+2. Clique em New bucket
+3. Nome: arquivos
+4. Marque Public bucket
+5. Desative Restrict file size
+6. Desative Restrict MIME types
+7. Salve
+
+Esse bucket precisa existir para os uploads funcionarem.
+
+15) COMO SABER SE DEU CERTO
+
+O fluxo correto e este:
+
+- cria um exemplo no Postman
+- pega o ID retornado
+- envia uma foto para /foto
+- envia um documento para /documento
+- confirma no Supabase Storage se os arquivos apareceram
+- testa GET para ver a URL publica
+- testa DELETE para apagar o arquivo
+
+16) ERROS MAIS COMUNS
+
+Erro 401 - API Key invalida ou ausente
+- faltou o header x-api-key
+- a chave esta diferente da definida no .env
+
+Erro 404 - Rota nao encontrada
+- confira a URL e o verbo HTTP
+- confira se a API esta rodando
+
+Erro 413 - Arquivo muito grande
+- o arquivo passou de 1 MB
+
+Erro 400 - Tipo de arquivo nao permitido
+- o arquivo nao esta em um formato aceito
+
+Erro P1001 no Prisma
+- falha de conexao com o banco
+- revise host, porta e se o Supabase esta ativo
+
+Erro P1000 no Prisma
+- senha do banco invalida
+- recopie a senha do painel do Supabase
+
+Erro MulterError: File too large
+- o arquivo ultrapassou o limite configurado no middleware
+
+17) OBSERVACOES IMPORTANTES
+
+- nao coloque a service role key no frontend
+- use a API Key da aplicacao apenas no Postman ou no backend
+- mantenha .env fora do GitHub
+- se mudar o schema.prisma, rode novamente prisma migrate dev e prisma generate
+- se mudar as variaveis do .env, reinicie a API
+
+18) COMO ORGANIZAR O TRABALHO EM CASA
+
+Uma rotina simples para estudar o projeto:
+
+1. Clonar o repositorio
+2. Abrir no VS Code
+3. Instalar dependencias
+4. Configurar .env
+5. Configurar Supabase
+6. Rodar migrations
+7. Rodar seed
+8. Subir a API
+9. Testar CRUD no Postman
+10. Testar upload de foto e documento
+11. Revisar erros e ajustar
+12. Se quiser, fazer deploy no Render
+
+19) DEPLOY NO RENDER - RESUMO
+
+Se quiser publicar a API:
+
+Build Command:
+npm install && npx prisma generate
+
+Start Command:
+node src/server.js
+
+Variaveis de ambiente no Render:
+- PORT
+- API_KEY
+- DATABASE_URL
+- DIRECT_URL
+- SUPABASE_URL
+- SUPABASE_SERVICE_ROLE_KEY
+
+20) CHECKLIST FINAL
+
+Antes de considerar pronto, confirme:
+
+- projeto clonado
+- dependencias instaladas
+- .env configurado
+- Supabase criado
+- bucket arquivos criado
+- migration executada
+- client Prisma gerado
+- seed executado
+- API rodando localmente
+- CRUD funcionando no Postman
+- upload de foto funcionando
+- upload de documento funcionando
+- URLs publicas retornando corretamente
+
+FIM DO GUIA

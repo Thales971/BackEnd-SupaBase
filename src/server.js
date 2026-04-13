@@ -21,6 +21,23 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Rota não encontrada' });
 });
 
+app.use((error, req, res, next) => {
+    if (error.name === 'MulterError') {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(413).json({ error: 'Arquivo muito grande. O limite é 1MB.' });
+        }
+
+        return res.status(400).json({ error: error.message });
+    }
+
+    if (error.message === 'Tipo de arquivo não permitido.') {
+        return res.status(400).json({ error: error.message });
+    }
+
+    console.error(error);
+    return res.status(500).json({ error: 'Erro interno no servidor.' });
+});
+
 app.listen(PORT, () => {
     console.log(`🚀 Servidor rodando em http://localhost:${PORT}`);
 });
