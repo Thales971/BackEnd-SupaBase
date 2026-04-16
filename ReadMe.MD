@@ -14,8 +14,7 @@
 - npx prisma init --datasource-provider postgresql
 
 # 5. Configurar `.env`
-- PORT=3000
-- DATABASE_URL="postgresql://usuario:senha@localhost:porta/nome_do_banco_db"
+- c
 
 # 6. Configurar schema.prisma
 - crie suas tabelas

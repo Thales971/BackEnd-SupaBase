@@ -4,6 +4,7 @@ import {
     upload as uploadStorage,
     deletar as deletarStorage,
 } from '../lib/helpers/arquivoHelper.js';
+import { SUPABASE_CONFIG_ERROR_MESSAGE } from '../lib/services/supabase.js';
 
 const uploadArquivo = (tipo) => async (req, res) => {
     try {
@@ -25,6 +26,11 @@ const uploadArquivo = (tipo) => async (req, res) => {
 
         return res.status(200).json({ message: `${tipo} enviado com sucesso!`, url: data[tipo] });
     } catch (error) {
+        if (error.message === SUPABASE_CONFIG_ERROR_MESSAGE) {
+            // Quando o Storage nao esta configurado, devolvemos 503 com a causa real.
+            return res.status(503).json({ error: error.message });
+        }
+
         return res.status(500).json({ error: `Erro ao fazer upload do ${tipo}.` });
     }
 };
@@ -67,6 +73,11 @@ const deletarArquivo = (tipo) => async (req, res) => {
 
         return res.status(200).json({ message: `${tipo} removido com sucesso!` });
     } catch (error) {
+        if (error.message === SUPABASE_CONFIG_ERROR_MESSAGE) {
+            // Quando o Storage nao esta configurado, devolvemos 503 com a causa real.
+            return res.status(503).json({ error: error.message });
+        }
+
         return res.status(500).json({ error: `Erro ao remover ${tipo}.` });
     }
 };
